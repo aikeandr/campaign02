@@ -1,14 +1,16 @@
 package edu.isu.cs.cs3308;
 
-import edu.isu.cs.cs3308.structures.Queue;
-import edu.isu.cs.cs3308.structures.impl.LinkedQueue;
+
+import edu.isu.cs.cs3308.structures.DoublyLinkedList;
+import edu.isu.cs.cs3308.structures.LinkedQueue;
+
 import java.util.Random;
 
 /**
  * Class representing a wait time simulation program.
  *
  * @author Isaac Griffith
- * @author
+ * @author Andrew Aikens
  */
 public class Simulation {
 
@@ -16,7 +18,7 @@ public class Simulation {
     private int maxNumQueues;
     private Random r;
     private int numIterations = 50;
-    // You will probably need more fields
+    private DoublyLinkedList<LinkedQueue<Integer>> lines;
 
     /**
      * Constructs a new simulation with the given arrival rate and maximum number of queues. The Random
@@ -33,7 +35,7 @@ public class Simulation {
     }
 
     /**
-     * Constructs a new siulation with the given arrival rate and maximum number of queues. The Random
+     * Constructs a new simulation with the given arrival rate and maximum number of queues. The Random
      * number generator is seeded with the provided seed value, and the number of iterations is set to
      * the provided value.
      *
@@ -52,7 +54,64 @@ public class Simulation {
      * Executes the Simulation
      */
     public void runSimulation() {
-        throw new UnsupportedOperationException("Not yet implemented");
+        System.out.println("Arrival Rate: " + arrivalRate);
+        for(int i = 0; i < maxNumQueues; i++) {
+            int averageWait = 0;
+            for (int j = 0; j < numIterations; j++) {
+                lines = new DoublyLinkedList<>();
+                for (int queuesOpen = 0; queuesOpen < i + 1; queuesOpen++)
+                    lines.addLast(new LinkedQueue<>());
+                int totalTimeWaited = 0;
+                int numOfPeoplePassed = 0;
+                for (int arrivalTime = 0; arrivalTime < 720; arrivalTime++) {
+                    int peopleArrivedThisMinute = getRandomNumPeople(arrivalRate);
+                    for (int k = 0; k < peopleArrivedThisMinute; k++)
+                        personEntersQueue(arrivalTime);
+                    for (int k = 0; k < lines.size(); k++) {
+                        if (lines.get(k).peek() != null) {
+                            totalTimeWaited += (arrivalTime - lines.get(k).poll());
+                            numOfPeoplePassed += 1;
+                        }
+                        if (lines.get(k).peek() != null) {
+                            totalTimeWaited += (arrivalTime - lines.get(k).poll());
+                            numOfPeoplePassed += 1;
+                        }
+                    }
+                }
+                averageWait = averageWait + totalTimeWaited / numOfPeoplePassed;
+            }
+            averageWait = averageWait/numIterations + 1;
+            printSimulation(averageWait, i+1);
+        }
+    }
+
+    /**
+     * Adds a person into the last queue with the least amount of people
+     *
+     * @param arrivalTime of the new person
+     */
+    private void personEntersQueue(int arrivalTime) {
+        int personEntersQueue = 0;
+        while (personEntersQueue+1 < lines.size()){
+            if (lines.get(personEntersQueue).size() >= lines.get(personEntersQueue+1).size())
+                personEntersQueue++;
+            else {
+                lines.get(personEntersQueue).offer(arrivalTime);
+                personEntersQueue = lines.size();
+            }
+        }
+        if(lines.get(personEntersQueue) != null)
+            lines.get(personEntersQueue).offer(arrivalTime);
+    }
+
+    /**
+     * Prints the wait time based on the number of open lines.
+     *
+     * @param average wait time for a person
+     * @param openQueues number of available lines
+     */
+    private void printSimulation(int average, int openQueues){
+        System.out.println("Average wait time using " + openQueues + " queue(s): " + average);
     }
 
     /**
